@@ -1,14 +1,12 @@
 #include "sphere.h"
 
-using renderer::Point;
-using renderer::Sphere;
-using renderer::Vector3;
+namespace renderer {
 
 Sphere::Sphere(Point position, double radius) : center_(position), radius_(radius) {
-    assert(radius >= 0);
+    assert(radius > 0);
 }
 
-const Point& Sphere::get_center() const {
+const types::Point& Sphere::get_center() const {
     return center_;
 }
 
@@ -25,6 +23,8 @@ double renderer::Sphere::get_squared_radius() const {
 }
 
 void renderer::Sphere::set_radius(double radius) {
-    assert(radius >= 0);
+    assert(radius > 0);
     radius_ = radius;
 }
+
+}  // namespace renderer

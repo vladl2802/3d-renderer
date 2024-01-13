@@ -7,6 +7,6 @@ add_link_options(-fsanitize=address)
 
 include_directories(/usr/local/include/eigen3)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 
-add_executable(main src/main.cpp src/primitive.cpp src/object.cpp src/geometry.cpp src/geometry/algo.cpp src/geometry/plane.cpp src/geometry/sphere.cpp)
+add_executable(main src/main.cpp src/renderer.cpp src/world.cpp src/primitive.cpp src/object.cpp src/geometry.cpp src/geometry/algo.cpp src/geometry/plane.cpp src/geometry/sphere.cpp)

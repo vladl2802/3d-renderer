@@ -4,26 +4,41 @@
 #include "geometry.h"
 
 namespace renderer {
+
 namespace primitive {
+
 enum struct PrimitiveType { Point, Segment, Triangle };
 
 class Base;
+
 }  // namespace primitive
 
 class Primitive {
 public:
+    using Point = types::Point;
+    template <int Rows, int Cols>
+    using Matrix = types::Matrix<Rows, Cols>;
+    using RGBColor = types::RGBColor;
+
     Primitive() = default;
     Primitive(const Primitive& other);
-    Primitive(Primitive&&) = default;
+    Primitive(Primitive&&) noexcept = default;
     Primitive& operator=(const Primitive& other);
-    Primitive& operator=(Primitive&&) = default;
+    Primitive& operator=(Primitive&&) noexcept = default;
 
-    Primitive(std::unique_ptr<primitive::Base>&& data);
+    static Primitive create_point(std::array<Point, 1> vertices, RGBColor color);
+    static Primitive create_segment(std::array<Point, 2> vertices, RGBColor color);
+    static Primitive create_triangle(std::array<Point, 3> vertices, RGBColor color);
 
     Primitive transform(const Matrix<4, 4>& operation) const;
+    void transform_inplace(const Matrix<4, 4>& operation);
+    // Maybe change vector here to range or something similar, because it's not necessary to always
+    // own the result
     std::vector<Point> get_vertices() const;
 
 private:
+    Primitive(std::unique_ptr<primitive::Base>&& data);
+
     std::unique_ptr<primitive::Base> data_;
 };
 
@@ -33,57 +48,58 @@ namespace primitive {
 // concept
 class Base {
 public:
-    Base() = default;
-    Base(const Base&) = default;
-    Base(Base&&) = default;
-    Base& operator=(const Base&) = default;
-    Base& operator=(Base&&) = default;
+    // I want to rename this, but I can't understand how for now
+    using GeomPoint = Primitive::Point;
+    template <int Rows, int Cols>
+    using Matrix = Primitive::Matrix<Rows, Cols>;
+    using RGBColor = Primitive::RGBColor;
+
     virtual ~Base() = default;
-
-    Base(RGBColor color, PrimitiveType type);
-
-    virtual Primitive transform(const Matrix<4, 4>& operation) const = 0;
-    virtual std::vector<renderer::Point> get_vertices() const = 0;
-    virtual Base* clone() const = 0;
-
-    RGBColor color_;
-    PrimitiveType type_;
+    
+    virtual void transform_inplace(const Matrix<4, 4>& operation) = 0;
+    virtual std::vector<GeomPoint> get_vertices() const = 0;
+    // virtual void intersect() const = 0;
+    // virtual void rasterize( Screen) const = 0;
+    virtual std::unique_ptr<Base> clone() const = 0;
 };
 
 class Point : public Base {
 public:
-    Point(std::array<renderer::Point, 1> vertices, RGBColor color);
+    Point(std::array<GeomPoint, 1> vertices, RGBColor color);
 
-    virtual Primitive transform(const Matrix<4, 4>& operation) const override;
-    virtual std::vector<renderer::Point> get_vertices() const override;
-    virtual Base* clone() const override;
+    void transform_inplace(const Matrix<4, 4>& operation) override;
+    std::vector<GeomPoint> get_vertices() const override;
+    std::unique_ptr<Base> clone() const override;
 
 private:
-    std::array<renderer::Point, 1> vertices_;
+    RGBColor color_;
+    std::array<GeomPoint, 1> vertices_;
 };
 
 class Segment : public Base {
 public:
-    Segment(std::array<renderer::Point, 2> vertices, RGBColor color);
+    Segment(std::array<GeomPoint, 2> vertices, RGBColor color);
 
-    virtual Primitive transform(const Matrix<4, 4>& operation) const override;
-    virtual std::vector<renderer::Point> get_vertices() const override;
-    virtual Base* clone() const override;
+    void transform_inplace(const Matrix<4, 4>& operation) override;
+    std::vector<GeomPoint> get_vertices() const override;
+    std::unique_ptr<Base> clone() const override;
 
 private:
-    std::array<renderer::Point, 2> vertices_;
+    RGBColor color_;
+    std::array<GeomPoint, 2> vertices_;
 };
 
 class Triangle : public Base {
 public:
-    Triangle(std::array<renderer::Point, 3> vertices, RGBColor color);
+    Triangle(std::array<GeomPoint, 3> vertices, RGBColor color);
 
-    virtual Primitive transform(const Matrix<4, 4>& operation) const override;
-    virtual std::vector<renderer::Point> get_vertices() const override;
-    virtual Base* clone() const override;
+    void transform_inplace(const Matrix<4, 4>& operation) override;
+    std::vector<GeomPoint> get_vertices() const override;
+    std::unique_ptr<Base> clone() const override;
 
 private:
-    std::array<renderer::Point, 3> vertices_;
+    RGBColor color_;
+    std::array<GeomPoint, 3> vertices_;
 };
 }  // namespace primitive
 

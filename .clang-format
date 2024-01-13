@@ -8,4 +8,4 @@ AllowShortLoopsOnASingleLine: false
 DerivePointerAlignment: true
 InsertBraces: true
 KeepEmptyLinesAtTheStartOfBlocks: true
-SortIncludes: false
+SortIncludes: true

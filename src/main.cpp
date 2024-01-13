@@ -1,5 +1,6 @@
 #include "geometry.h"
+#include "renderer.h"
 
 int main() {
-    return 0;
+    renderer::Renderer(100, 100);
 }

@@ -1,9 +1,11 @@
 #include "plane.h"
 
-#include </usr/local/include/eigen3/Eigen/Dense>
+#include "Eigen/Dense"
 #include <cassert>
 
-using renderer::Plane;
+namespace renderer {
+
+using types::Vector4;
 
 Plane::Plane(Vector3 normal, double d) : normal_(normal), d_(d) {
     normal_.normalize();
@@ -27,10 +29,23 @@ double Plane::get_distance(Point p) const {
 }
 
 Plane Plane::transform(const Matrix<4, 4>& operation) const {
-    operation.inverse().transpose();
-    Vector4 temp;
-    temp.block<3, 1>(0, 0) = normal_;
-    temp(3) = d_;
-    temp = operation * temp;
-    return Plane(temp.head<3>(), temp(3));
+    Plane result(*this);
+    result.transform_inplace(operation);
+    return result;
+    // operation.inverse().transpose();
+    // Vector4 temp;
+    // temp.block<3, 1>(0, 0) = normal_;
+    // temp(3) = d_;
+    // temp = operation * temp;
+    // return Plane(temp.head<3>(), temp(3));
 }
+
+void Plane::transform_inplace(const Matrix<4, 4>& operation) {
+    double d_temp = d_;
+    d_ = operation(3, 3) * d_temp + operation.block<1, 3>(3, 0).dot(normal_);
+    operation.inverse().transpose();
+    normal_ = operation.block<3, 3>(0, 0) * normal_;
+    normal_.array() += operation.block<3, 1>(0, 0).sum() * d_temp;
+}
+
+}  // namespace renderer

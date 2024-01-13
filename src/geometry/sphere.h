@@ -6,6 +6,8 @@ namespace renderer {
 
 class Sphere {
 public:
+    using Point = types::Point;
+
     Sphere(Point center, double radius);
 
     const Point& get_center() const;
@@ -18,4 +20,5 @@ private:
     Point center_;
     double radius_;
 };
-}
+
+}  // namespace renderer
