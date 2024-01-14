@@ -7,6 +7,7 @@
 #include "geometry.h"
 #include "geometry/plane.h"
 #include "primitive.h"
+#include "screen.h"
 #include "world.h"
 
 namespace renderer {
@@ -22,19 +23,6 @@ struct Camera {
     Matrix<3, 3> orientation;
     float near;
     float far;
-};
-
-class Screen {
-public:
-    using RGBColor = types::RGBColor;
-
-    Screen(size_t height, size_t width);
-
-private:
-    size_t height_;
-    size_t width_;
-    // Can be changed to dynarray
-    std::vector<std::vector<RGBColor>> data_;
 };
 
 class Renderer {

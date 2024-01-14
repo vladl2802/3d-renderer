@@ -2,10 +2,6 @@
 
 namespace renderer {
 
-Screen::Screen(size_t height, size_t width)
-    : height_(height), width_(width), data_(height, std::vector<RGBColor>(width, {0, 0, 0})) {
-}
-
 types::Matrix<4, 4> Renderer::get_to_camera_coords_matrix(const Camera& camera) {
     Matrix<4, 4> result = Matrix<4, 4>::Zero();
     result.block<3, 3>(0, 0) = camera.orientation;
