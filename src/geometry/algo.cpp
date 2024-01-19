@@ -42,4 +42,10 @@ Sphere renderer::algo::get_bounding_sphere(const std::vector<Point>& points) {
     return res;
 }
 
+types::Point algo::intersect_plane_and_line(const Plane& plane, const Line& line) {
+    double num = -plane.get_signed_distance(line.get_point());
+    double den = line.get_direction().dot(plane.get_normal());
+    return num / den * line.get_direction() + line.get_point();
+}
+
 }  // namespace renderer

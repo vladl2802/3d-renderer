@@ -6,8 +6,10 @@
 namespace renderer {
 
 using types::Vector4;
+using types::Vector3;
 
 Plane::Plane(Vector3 normal, double d) : normal_(normal), d_(d) {
+    assert(normal_.norm() > 0);
     normal_.normalize();
 }
 
@@ -18,6 +20,10 @@ Plane::Plane(Vector3 normal, Point p) : Plane(normal, -normal.dot(p)) {
 }
 
 Plane::Plane(Point p1, Point p2, Point p3) : Plane((p2 - p1).cross(p3 - p1), p1) {
+}
+
+Vector3 Plane::get_normal() const {
+    return normal_;
 }
 
 double Plane::get_signed_distance(Point p) const {

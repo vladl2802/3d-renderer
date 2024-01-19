@@ -47,8 +47,6 @@ private:
     static bool can_draw_object(const std::array<BoundingCheckResult, 6>& check_results);
 
     Screen screen_;
-
-    // std::vector<Primitive> visible_primitives;
 };
 
 }  // namespace renderer

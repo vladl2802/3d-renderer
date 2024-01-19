@@ -8,25 +8,14 @@ namespace renderer {
 
 using types::Point;
 
-namespace {
-std::vector<Point> merge_primitives_vertices(const std::vector<Primitive>& primitives) {
-    std::vector<Point> result;
-    for (auto prim : primitives) {
-        auto vers = prim.get_vertices();
-        result.insert(result.end(), vers.begin(), vers.end());
-    }
-    return result;
-}
-}  // namespace
-
-Object::Object(Point position, std::vector<Primitive> primitives)
+Object::Object(Point position, PrimitivesSet primitives)
     : position_(position),
       primitives_(primitives),
-      bounding_(algo::get_bounding_sphere(merge_primitives_vertices(primitives))) {
+      bounding_(algo::get_bounding_sphere(primitives.get_vertices())) {
 }
 
 std::vector<Point> Object::get_vertices() const {
-    return merge_primitives_vertices(primitives_);
+    return primitives_.get_vertices();
 }
 
 BoundingCheckResult Object::check_bounding(const Plane& plane) const {
@@ -35,6 +24,10 @@ BoundingCheckResult Object::check_bounding(const Plane& plane) const {
         return BoundingCheckResult::Intersects;
     }
     return dist < 0 ? BoundingCheckResult::OnNegativeSide : BoundingCheckResult::OnPositiveSide;
+}
+
+const PrimitivesSet& Object::get_primitives() const {
+    return primitives_;
 }
 
 }  // namespace renderer

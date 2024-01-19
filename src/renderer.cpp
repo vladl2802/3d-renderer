@@ -19,10 +19,6 @@ std::array<Plane, 6> Renderer::get_view_frustum_bounding(const Camera& camera) {
         Plane(Vector3(0, camera.near, -camera.height / 2), Point(0, 0, 0)),   // bottom
         Plane(Vector3(0, -camera.near, -camera.height / 2), Point(0, 0, 0)),  // top
     };
-    auto transform_matrix = get_to_camera_coords_matrix(camera).inverse();
-    for (auto& plane : result) {
-        plane.transform_inplace(transform_matrix);
-    }
     return result;
 }
 
@@ -52,17 +48,28 @@ const Screen& Renderer::operator()(const World& world, const Camera& camera) {
     // Need to check camera direction matrix (that it's contains normalized right vector triple)
 
     auto transform_matrix = get_to_camera_coords_matrix(camera);
-    auto frustum_bounding = get_view_frustum_bounding(camera);
+    
+    std::array<Plane, 6> frustum_bounding = get_view_frustum_bounding(camera);
+    std::array<Plane, 6> transformed_frustum_bounding;
+    std::transform(frustum_bounding.begin(), frustum_bounding.end(),
+                   transformed_frustum_bounding.begin(),
+                   [transform_matrix = transform_matrix.inverse()](const Plane& plane) {
+                       return plane.transform(transform_matrix);
+                   });
     for (const auto& obj : world.get_objects()) {
-        auto check_results = check_bounding(frustum_bounding, obj); 
+        auto check_results = check_bounding(transformed_frustum_bounding, obj);
         if (can_skip_object(check_results)) {
             // If object is outside view frustum it can be fully skipped
             continue;
         }
+        PrimitivesSet primitives = obj.get_primitives();
+        primitives.transform_inplace(transform_matrix);
         if (can_draw_object(check_results)) {
             // If object is inside view frustum it can be fully drawn
+            primitives.rasterize(screen_);
         } else {
             // If object intersects view frustum it needs further checks on each its primitive
+            primitives.intersect_and_rasterize(frustum_bounding, screen_);
         }
     }
     return screen_;

@@ -11,11 +11,13 @@ public:
     template <int Rows, int Cols>
     using Matrix = types::Matrix<Rows, Cols>;
 
+    Plane() = default;
     Plane(Vector3 normal, double d);
     Plane(double a, double b, double c, double d);
     Plane(Vector3 normal, Point p);
     Plane(Point p1, Point p2, Point p3);
 
+    Vector3 get_normal() const;
     double get_signed_distance(Point p) const;
     double get_distance(Point p) const;
 
