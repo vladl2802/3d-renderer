@@ -80,7 +80,8 @@ void Segment::rasterize(Screen& screen) const {
     } else {
         range = Range(vertices_[0].y(), vertices_[1].y());
     }
-    LinearInterpolation li(range, std::make_tuple(std::make_pair(inv_vertices[0], inv_vertices[1])));
+    LinearInterpolation li(range,
+                           std::make_tuple(std::make_pair(inv_vertices[0], inv_vertices[1])));
     for (double pos = range.begin(); pos <= range.end(); ++pos) {
         auto [point] = li.interpolate(pos);
         screen.put_pixel(point, color_);
@@ -133,16 +134,31 @@ void Triangle::rasterize(Screen& screen) const {
     LinearInterpolation short_li(ver_range,
                                  std::make_tuple(std::make_pair(inv_vertices[0], inv_vertices[1])));
     for (double pos = ver_range.begin(); pos <= ver_range.end(); ++pos) {
-        auto[point_long] = long_li.interpolate(pos);
-        auto[point_short] = long_li.interpolate(pos);
+        auto [point_long] = long_li.interpolate(pos);
+        auto [point_short] = long_li.interpolate(pos);
         Range hor_range = Range(point_long.x(), point_short.x());
-        LinearInterpolation hor(hor_range, std::make_tuple(std::make_pair(point_long, point_short)));
+        LinearInterpolation hor(hor_range,
+                                std::make_tuple(std::make_pair(point_long, point_short)));
         for (double pos = hor_range.begin(); hor_range.end(); ++pos) {
-            auto[point] = hor.interpolate(pos);
+            auto [point] = hor.interpolate(pos);
             screen.put_pixel(point, color_);
         }
     }
-    // need deduplication, but I'm not sure how for now
+    // need deduplicate this, but I'm not sure how for now
+    ver_range = Range(inv_vertices[1].y(), inv_vertices[2].y());
+    short_li = LinearInterpolation(
+        ver_range, std::make_tuple(std::make_pair(inv_vertices[1], inv_vertices[2])));
+    for (double pos = ver_range.begin(); pos <= ver_range.end(); ++pos) {
+        auto [point_long] = long_li.interpolate(pos);
+        auto [point_short] = long_li.interpolate(pos);
+        Range hor_range = Range(point_long.x(), point_short.x());
+        LinearInterpolation hor(hor_range,
+                                std::make_tuple(std::make_pair(point_long, point_short)));
+        for (double pos = hor_range.begin(); hor_range.end(); ++pos) {
+            auto [point] = hor.interpolate(pos);
+            screen.put_pixel(point, color_);
+        }
+    }
 }
 
 std::vector<Triangle> Triangle::intersect(const Plane& plane) const {

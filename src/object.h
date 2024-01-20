@@ -17,6 +17,9 @@ public:
     using Point = types::Point;
     template <int Rows, int Cols>
     using Matrix = types::Matrix<Rows, Cols>;
+    using RGBColor = types::RGBColor;
+
+    static Object create_triangle(Point p1, Point p2, Point p3, RGBColor color);
 
     Object(Point position, PrimitivesSet primitives);
 

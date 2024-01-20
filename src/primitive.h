@@ -71,6 +71,9 @@ public:
     using Matrix = PrimitiveBase::Matrix<Rows, Cols>;
     using RGBColor = PrimitiveBase::RGBColor;
 
+    template <SameAsAny<Primitives...> T>
+    void push(const T& value);
+
     void transform_inplace(const Matrix<4, 4>& operation);
     PrimitivesSet transform(const Matrix<4, 4>& operation) const;
 
@@ -81,8 +84,6 @@ public:
     std::vector<GeomPoint> get_vertices() const;
 
 private:
-    template <SameAsAny<Primitives...> T>
-    void push(const T& value);
 
     // Need apply method that will call function on every std::vector contained in data_ to properly
     // use std::algorithms, but for now for_each method is enough

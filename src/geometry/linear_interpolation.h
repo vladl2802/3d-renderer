@@ -18,13 +18,15 @@ public:
     T begin() const;
     T end() const;
     T len() const;
-private:
 
+private:
     T begin_;
     T end_;
 };
 
 // This class is really questionable, but I didn't come up with better
+// This may be turned into std::view, but I'm not sure is that good approach
+
 // Maybe add concept for value to have +- binary operators and can be */ by Type
 template <typename... Values>
 class LinearInterpolation {
@@ -33,13 +35,14 @@ public:
     template <typename T>
     using RangeType = Range<T>;
 
-    // LinearInterpolation() = default;
+    // std::pair here is placeholder
     LinearInterpolation(RangeType<Type> parameter, std::tuple<std::pair<Values, Values>...> values);
 
     auto interpolate(Type value) -> std::tuple<Values...> const;
 
 private:
     Type parameter_base_;
+    // std::pair here is placeholder
     std::tuple<std::pair<Values, Values>...> lines_;
 };
 
@@ -95,6 +98,5 @@ inline auto LinearInterpolation<Values...>::interpolate(Type value) -> std::tupl
         lines_);
     return result;
 }
-
 
 }  // namespace renderer
