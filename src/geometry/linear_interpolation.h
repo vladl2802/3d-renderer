@@ -8,6 +8,8 @@
 namespace renderer {
 
 template <typename T>
+
+// This is placeholder
 class Range {
 public:
     using Type = T;
