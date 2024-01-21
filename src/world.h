@@ -9,7 +9,7 @@ namespace renderer {
 class World {
 public:
     const std::vector<Object>& get_objects() const;
-    void push_object(Object&& obj);
+    void push_object(const Object& obj);
 
 private:
     std::vector<Object> objects_;
