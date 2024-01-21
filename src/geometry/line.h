@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../geometry.h"
+#include "plane.h"
 
 namespace renderer {
 
@@ -13,6 +14,8 @@ public:
 
     Line(Point p1, Point p2);
     // Line(Point point, Vector direction);
+
+    Point intersect_plane(const Plane& plane) const;
 
     Point get_point() const;
     Vector3 get_direction() const;

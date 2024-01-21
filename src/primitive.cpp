@@ -104,7 +104,7 @@ std::vector<Segment> Segment::intersect(const Plane& plane) const {
     auto outside_point =
         std::find_if(result.vertices_.begin(), result.vertices_.end(), check_is_outside);
     assert(outside_point != vertices_.end());
-    *outside_point = algo::intersect_plane_and_line(plane, Line(vertices_[0], vertices_[1]));
+    *outside_point = Line(vertices_[0], vertices_[1]).intersect_plane(plane);
     return {result};
 }
 
@@ -181,8 +181,7 @@ std::vector<Triangle> Triangle::intersect(const Plane& plane) const {
     static constexpr std::array<std::pair<int, int>, 3> kEdges = {{{0, 1}, {0, 2}, {1, 2}}};
     for (const auto& [u, v] : kEdges) {
         if (check_results[u] != check_results[v]) {
-            inside.push_back(
-                algo::intersect_plane_and_line(plane, Line(vertices_[u], vertices_[v])));
+            inside.push_back(Line(vertices_[u], vertices_[v]).intersect_plane(plane));
         }
     }
     assert(inside.size() == inside_count + 2);
