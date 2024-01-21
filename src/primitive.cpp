@@ -34,20 +34,20 @@ inline void perform_transform_inplace(std::array<Point, N>& vertices,
 
 namespace primitive {
 
-Point::Point(std::array<GeomPoint, 1> vertices, RGBColor color)
-    : color_(color), vertices_(vertices) {
+Point::Point(GeomPoint position, RGBColor color)
+    : color_(color), position_(position) {
 }
 
 void Point::transform_inplace(const Matrix<4, 4>& operation) {
-    perform_transform_inplace<1>(vertices_, operation);
+    homogeneous_transform_inplace(position_, operation);
 }
 
 void Point::rasterize(Screen& screen) const {
-    screen.put_pixel(vertices_[0], color_);
+    screen.put_pixel(position_, color_);
 }
 
 std::vector<Point> Point::intersect(const Plane& plane) const {
-    if (plane.get_signed_distance(this->vertices_[0]) > 0) {
+    if (plane.get_signed_distance(position_) > 0) {
         return {*this};
     } else {
         return {};
@@ -55,7 +55,7 @@ std::vector<Point> Point::intersect(const Plane& plane) const {
 }
 
 std::vector<Point::GeomPoint> Point::get_vertices() const {
-    return std::vector<Point::GeomPoint>(vertices_.begin(), vertices_.end());
+    return {position_};
 }
 
 Segment::Segment(std::array<GeomPoint, 2> vertices, RGBColor color)

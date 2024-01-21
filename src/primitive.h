@@ -99,7 +99,7 @@ private:
 
 class Point : public PrimitiveBase {
 public:
-    Point(std::array<GeomPoint, 1> vertices, RGBColor color);
+    Point(GeomPoint position, RGBColor color);
 
     void transform_inplace(const Matrix<4, 4>& operation);
     void rasterize(Screen& screen) const;
@@ -108,8 +108,7 @@ public:
 
 private:
     RGBColor color_;
-    // Will fix this together with get_vertices returning type
-    std::array<GeomPoint, 1> vertices_;
+    GeomPoint position_;
 };
 
 class Segment : public PrimitiveBase {

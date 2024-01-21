@@ -45,7 +45,7 @@ Renderer::Renderer(size_t screen_height, size_t screen_width)
 }
 
 const Screen& Renderer::operator()(const World& world, const Camera& camera) {
-    // Need to check camera direction matrix (that it's contains normalized right vector triple)
+    // Need to check camera direction matrix (that it contains normalized right vector triple)
 
     auto transform_matrix = get_to_camera_coords_matrix(camera);
     
