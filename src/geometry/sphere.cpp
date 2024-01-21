@@ -6,7 +6,7 @@ Sphere::Sphere(Point position, double radius) : center_(position), radius_(radiu
     assert(radius > 0);
 }
 
-const types::Point& Sphere::get_center() const {
+types::Point Sphere::get_center() const {
     return center_;
 }
 

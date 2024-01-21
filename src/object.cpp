@@ -14,7 +14,7 @@ Object Object::create_triangle(Point p1, Point p2, Point p3, RGBColor color) {
     return Object(Point(0, 0, 0), ps);
 }
 
-Object::Object(Point position, PrimitivesSet primitives)
+Object::Object(Point position, const PrimitivesSet& primitives)
     : position_(position),
       primitives_(primitives),
       bounding_(algo::get_bounding_sphere(primitives.get_vertices())) {

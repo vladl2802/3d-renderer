@@ -12,7 +12,7 @@ public:
 
     Sphere(Point center, double radius);
 
-    const Point& get_center() const;
+    Point get_center() const;
     void set_center(Point center);
     double get_radius() const;
     double get_squared_radius() const;

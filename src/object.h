@@ -21,7 +21,7 @@ public:
 
     static Object create_triangle(Point p1, Point p2, Point p3, RGBColor color);
 
-    Object(Point position, PrimitivesSet primitives);
+    Object(Point position, const PrimitivesSet& primitives);
 
     std::vector<Point> get_vertices() const;
     BoundingCheckResult check_bounding(const Plane& plane) const;

@@ -18,11 +18,11 @@ struct Camera {
     using Matrix = types::Matrix<Rows, Cols>;
 
     Point position;
-    float width;
-    float height;
+    double width;
+    double height;
     Matrix<3, 3> orientation;
-    float near;
-    float far;
+    double near;
+    double far;
 };
 
 class Renderer {
