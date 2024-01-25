@@ -12,6 +12,7 @@ public:
     Screen(size_t height, size_t width);
 
     inline void put_pixel(Point inv_point, RGBColor color);
+    std::vector<std::vector<RGBColor>> get_frame_buffer() const;
 
 private:
     size_t height_;
@@ -38,10 +39,14 @@ inline void Screen::put_pixel(Point inv_point, RGBColor color) {
     }
     size_t num_x = (x + 1) / 2 * width_;
     size_t num_y = (y + 1) / 2 * height_;
-    if (depth_buffer_[num_x][num_y] < inv_z) {  // 1 / depth_buffer > 1 / inv_z
-        depth_buffer_[num_x][num_y] = inv_z;
-        data_[num_x][num_y] = color;
+    if (depth_buffer_[num_y][num_x] < inv_z) {  // 1 / depth_buffer > 1 / inv_z
+        depth_buffer_[num_y][num_x] = inv_z;
+        data_[num_y][num_x] = color;
     }
+}
+
+inline std::vector<std::vector<Screen::RGBColor>> Screen::get_frame_buffer() const {
+    return data_;
 }
 
 }  // namespace renderer

@@ -18,8 +18,10 @@ struct Camera {
     using Matrix = types::Matrix<Rows, Cols>;
 
     Point position;
-    double width;
-    double height;
+    double left;
+    double right;
+    double bottom;
+    double top;
     Matrix<3, 3> orientation;
     double near;
     double far;
@@ -37,8 +39,10 @@ public:
     const Screen& operator()(const World& world, const Camera& camera);
 
 private:
-    static Matrix<4, 4> get_to_camera_coords_matrix(const Camera& camera);
+    static Matrix<4, 4> get_from_camera_coords_matrix(const Camera& camera);
     static std::array<Plane, 6> get_view_frustum_bounding(const Camera& camera);
+    static std::array<Plane, 6> transform_bounding(const std::array<Plane, 6>& bounding,
+                                                   const Matrix<4, 4>& operation);
     static Matrix<4, 4> get_perspective_projection_matrix(const Camera& camera);
 
     static std::array<BoundingCheckResult, 6> check_bounding(const std::array<Plane, 6>& bounding,

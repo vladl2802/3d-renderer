@@ -5,11 +5,13 @@ if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     message(FATAL_ERROR "This project is g++ only (for now maybe)")
 endif()
 
-add_compile_options(-g -Wall -Wextra -Wpedantic)
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
+add_compile_definitions(_GLIBCXX_DEBUG=1)
 
-include_directories(./eigen)
+add_compile_options(-g -Wall -Wextra -Wpedantic)
+add_compile_options(-fsanitize=undefined,address,leak)
+add_link_options(-fsanitize=undefined,address,leak)
+
+include_directories(eigen)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

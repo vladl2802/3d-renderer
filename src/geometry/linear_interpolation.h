@@ -64,7 +64,7 @@ inline T Range<T>::end() const {
 
 template <typename T>
 inline T Range<T>::len() const {
-    return begin_ - end_;
+    return end_ - begin_;
 }
 
 template <typename... Values>
@@ -72,12 +72,18 @@ inline LinearInterpolation<Values...>::LinearInterpolation(
     RangeType<Type> parameter, std::tuple<std::pair<Values, Values>...> values)
     : parameter_base_(parameter.begin()) {
     Type diff = parameter.len();
+    assert(diff >= 0); // Can't remove equality check here
     std::apply(
         [&parameter, diff, this](const auto&... ranges) {
             (
                 [&parameter, diff, this](const auto& range) {
                     using T = std::decay_t<decltype(range)>::first_type;
-                    std::get<std::pair<T, T>>(lines_) = {range.first, range.second / diff};
+                    T slope = range.first - range.second;
+                    // Move this epsilon to constant
+                    if (diff > 1e-4) {
+                        slope /= diff;
+                    }
+                    std::get<std::pair<T, T>>(lines_) = {range.first, slope};
                 }(ranges),
                 ...);
         },

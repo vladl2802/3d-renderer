@@ -1,8 +1,10 @@
 #include "renderer.h"
 
+#include "Eigen/LU"
+
 namespace renderer {
 
-types::Matrix<4, 4> Renderer::get_to_camera_coords_matrix(const Camera& camera) {
+Renderer::Matrix<4, 4> Renderer::get_from_camera_coords_matrix(const Camera& camera) {
     Matrix<4, 4> result = Matrix<4, 4>::Zero();
     result.block<3, 3>(0, 0) = camera.orientation;
     result.block<3, 1>(0, 3) = -camera.position;
@@ -12,13 +14,35 @@ types::Matrix<4, 4> Renderer::get_to_camera_coords_matrix(const Camera& camera) 
 
 std::array<Plane, 6> Renderer::get_view_frustum_bounding(const Camera& camera) {
     std::array<Plane, 6> result = {
-        Plane(Vector3(0, 0, -1), Point(0, 0, -camera.near)),                  // near
-        Plane(Vector3(0, 0, 1), Point(0, 0, -camera.far)),                    // far
-        Plane(Vector3(camera.near, 0, -camera.width / 2), Point(0, 0, 0)),    // left
-        Plane(Vector3(-camera.near, 0, -camera.width / 2), Point(0, 0, 0)),   // right
-        Plane(Vector3(0, camera.near, -camera.height / 2), Point(0, 0, 0)),   // bottom
-        Plane(Vector3(0, -camera.near, -camera.height / 2), Point(0, 0, 0)),  // top
+        Plane(Vector3(0, 0, -1), Point(0, 0, -camera.near)),             // near
+        Plane(Vector3(0, 0, 1), Point(0, 0, -camera.far)),               // far
+        Plane(Vector3(camera.near, 0, camera.left), Point(0, 0, 0)),     // left
+        Plane(Vector3(-camera.near, 0, -camera.right), Point(0, 0, 0)),  // right
+        Plane(Vector3(0, camera.near, camera.bottom), Point(0, 0, 0)),   // bottom
+        Plane(Vector3(0, -camera.near, -camera.top), Point(0, 0, 0)),    // top
     };
+    return result;
+}
+
+std::array<Plane, 6> Renderer::transform_bounding(const std::array<Plane, 6>& bounding,
+                                                  const Matrix<4, 4>& operation) {
+    std::array<Plane, 6> result;
+    std::transform(bounding.begin(), bounding.end(), result.begin(),
+                   [&operation](const Plane& plane) { return plane.transform(operation); });
+    return result;
+}
+
+Renderer::Matrix<4, 4> Renderer::get_perspective_projection_matrix(const Camera& camera) {
+    auto n = camera.near;
+    auto f = camera.far;
+    auto l = camera.left;
+    auto r = camera.right;
+    auto b = camera.bottom;
+    auto t = camera.top;
+    Matrix<4, 4> result{{2 * n / (r - l), 0, (r + l) / (r - l), 0},
+                        {0, 2 * n / (t - b), (t + b) / (t - b), 0},
+                        {0, 0, -(f + n) / (f - n), -2 * n * f / (f - n)},
+                        {0, 0, -1, 0}};
     return result;
 }
 
@@ -46,16 +70,12 @@ Renderer::Renderer(size_t screen_height, size_t screen_width)
 
 const Screen& Renderer::operator()(const World& world, const Camera& camera) {
     // Need to check camera direction matrix (that it contains normalized right vector triple)
-
-    auto transform_matrix = get_to_camera_coords_matrix(camera);
-    
+    Matrix<4, 4> transform_from_camera = get_from_camera_coords_matrix(camera);
     std::array<Plane, 6> frustum_bounding = get_view_frustum_bounding(camera);
-    std::array<Plane, 6> transformed_frustum_bounding;
-    std::transform(frustum_bounding.begin(), frustum_bounding.end(),
-                   transformed_frustum_bounding.begin(),
-                   [transform_matrix = transform_matrix.inverse()](const Plane& plane) {
-                       return plane.transform(transform_matrix);
-                   });
+    std::array<Plane, 6> transformed_frustum_bounding =
+        transform_bounding(frustum_bounding, transform_from_camera);
+    Matrix<4, 4> transform_to_camera =
+        get_perspective_projection_matrix(camera) * transform_from_camera.inverse();
     for (const auto& obj : world.get_objects()) {
         auto check_results = check_bounding(transformed_frustum_bounding, obj);
         if (can_skip_object(check_results)) {
@@ -63,7 +83,7 @@ const Screen& Renderer::operator()(const World& world, const Camera& camera) {
             continue;
         }
         PrimitivesSet primitives = obj.get_primitives();
-        primitives.transform_inplace(transform_matrix);
+        primitives.transform_inplace(transform_to_camera);
         if (can_draw_object(check_results)) {
             // If object is inside view frustum it can be fully drawn
             primitives.rasterize(screen_);

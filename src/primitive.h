@@ -34,8 +34,8 @@ concept Intersectable = requires(const T& prim, const Plane& plane) {
 };
 
 // This maybe be preferable, because it not limits result to contain the same primitives and doesn't
-// create useless temporary vector but both solutions seems to be terrible performance wise 
-// template <typename T> 
+// create useless temporary vector but both solutions seems to be terrible performance wise
+// template <typename T>
 // concept Intersectable = requires(T prim, const Plane& plane, PrimitivesSet& cont) {
 //     { prim.intersect(plane, cont) } -> std::same_as<void>;
 // };
@@ -85,7 +85,6 @@ public:
     std::vector<GeomPoint> get_vertices() const;
 
 private:
-
     // Need apply method that will call function on every std::vector contained in data_ to properly
     // use std::algorithms, but for now for_each method is enough
 
@@ -121,7 +120,6 @@ public:
     std::vector<GeomPoint> get_vertices() const;
 
 private:
-
     RGBColor color_;
     std::array<GeomPoint, 2> vertices_;
 };

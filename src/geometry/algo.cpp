@@ -9,6 +9,7 @@
 namespace renderer {
 
 using types::Point;
+using types::Vector3;
 
 namespace {
 Point find_farthest_point(const std::vector<Point>& points, Point pivot) {
@@ -29,7 +30,7 @@ Sphere renderer::algo::get_bounding_sphere(const std::vector<Point>& points) {
     const auto z = find_farthest_point(points, y);
     Sphere res((y + z) / 2.0, (y - z).norm() / 2.0);
     for (const auto& pt : points) {
-        const auto dir = res.get_center() - pt;
+        Vector3 dir = res.get_center() - pt;
         auto diff2 = dir.squaredNorm();
         auto rad2 = res.get_squared_radius();
         if (diff2 <= rad2) {

@@ -133,14 +133,14 @@ void Triangle::rasterize(Screen& screen) const {
     Range ver_range(inv_vertices[0].y(), inv_vertices[1].y());
     LinearInterpolation short_li(ver_range,
                                  std::make_tuple(std::make_pair(inv_vertices[0], inv_vertices[1])));
-    for (double pos = ver_range.begin(); pos <= ver_range.end(); ++pos) {
-        auto [point_long] = long_li.interpolate(pos);
-        auto [point_short] = long_li.interpolate(pos);
+    for (double y_pos = ver_range.begin(); y_pos <= ver_range.end(); y_pos += 0.05) {
+        auto [point_long] = long_li.interpolate(y_pos);
+        auto [point_short] = short_li.interpolate(y_pos);
         Range hor_range = Range(point_long.x(), point_short.x());
         LinearInterpolation hor(hor_range,
                                 std::make_tuple(std::make_pair(point_long, point_short)));
-        for (double pos = hor_range.begin(); hor_range.end(); ++pos) {
-            auto [point] = hor.interpolate(pos);
+        for (double x_pos = hor_range.begin(); x_pos <= hor_range.end(); x_pos += 0.05) {
+            auto [point] = hor.interpolate(x_pos);
             screen.put_pixel(point, color_);
         }
     }
@@ -148,14 +148,14 @@ void Triangle::rasterize(Screen& screen) const {
     ver_range = Range(inv_vertices[1].y(), inv_vertices[2].y());
     short_li = LinearInterpolation(
         ver_range, std::make_tuple(std::make_pair(inv_vertices[1], inv_vertices[2])));
-    for (double pos = ver_range.begin(); pos <= ver_range.end(); ++pos) {
-        auto [point_long] = long_li.interpolate(pos);
-        auto [point_short] = long_li.interpolate(pos);
+    for (double y_pos = ver_range.begin(); y_pos <= ver_range.end(); y_pos += 0.05) {
+        auto [point_long] = long_li.interpolate(y_pos);
+        auto [point_short] = short_li.interpolate(y_pos);
         Range hor_range = Range(point_long.x(), point_short.x());
         LinearInterpolation hor(hor_range,
                                 std::make_tuple(std::make_pair(point_long, point_short)));
-        for (double pos = hor_range.begin(); hor_range.end(); ++pos) {
-            auto [point] = hor.interpolate(pos);
+        for (double x_pos = hor_range.begin(); x_pos <= hor_range.end(); x_pos += 0.05) {
+            auto [point] = hor.interpolate(x_pos);
             screen.put_pixel(point, color_);
         }
     }
