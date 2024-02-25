@@ -6,47 +6,35 @@ namespace renderer {
 
 class Screen {
 public:
+    struct Dimensions {
+        size_t height;
+        size_t width;
+    };
+
+    using CordType = types::CordType;
     using Point = types::Point;
     using RGBColor = types::RGBColor;
 
-    Screen(size_t height, size_t width);
+    Screen(Dimensions dims);
 
-    inline void put_pixel(Point inv_point, RGBColor color);
+    Dimensions get_dimensions() const;
+
+    // I don't really like that point with inverse to z also has type Point, but I'm not sure how to
+    // fix that
+    void put_pixel_in_screen_cords(Point inv_point, RGBColor color);
+    void put_pixel_in_camera_cords(Point inv_point, RGBColor color);
     std::vector<std::vector<RGBColor>> get_frame_buffer() const;
 
 private:
-    size_t height_;
-    size_t width_;
+    void put_pixel(size_t x_ind, size_t y_ind, CordType z_inv, RGBColor color);
+    bool check_boundaries(size_t x_ind, size_t y_ind, CordType z_inv);
+
+    Dimensions dims_;
 
     // Can be changed to dynarray
     // Maybe merge depth and color in one cell to avoid cache misses
     std::vector<std::vector<double>> depth_buffer_;
     std::vector<std::vector<RGBColor>> data_;
 };
-
-inline void Screen::put_pixel(Point inv_point, RGBColor color) {
-    auto x = inv_point.x();
-    auto y = inv_point.y();
-    auto inv_z = inv_point.z();
-    if (x < -1 || 1 < x) {
-        return;
-    }
-    if (y < -1 || 1 < y) {
-        return;
-    }
-    if (-1 < inv_z && inv_z < 1) {
-        return;
-    }
-    size_t num_x = (x + 1) / 2 * width_;
-    size_t num_y = (y + 1) / 2 * height_;
-    if (depth_buffer_[num_y][num_x] < inv_z) {  // 1 / depth_buffer > 1 / inv_z
-        depth_buffer_[num_y][num_x] = inv_z;
-        data_[num_y][num_x] = color;
-    }
-}
-
-inline std::vector<std::vector<Screen::RGBColor>> Screen::get_frame_buffer() const {
-    return data_;
-}
 
 }  // namespace renderer

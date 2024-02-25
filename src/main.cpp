@@ -1,12 +1,13 @@
 #include <array>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 #include "geometry.h"
 #include "renderer.h"
 
 using renderer::Object;
 using renderer::Renderer;
+using renderer::Screen;
 using renderer::World;
 using renderer::types::Matrix;
 
@@ -28,13 +29,16 @@ int main() {
                                .orientation = orientation,
                                .near = 1,
                                .far = 11};
-    auto renderer = Renderer(20, 20);
+    auto renderer = Renderer(Screen::Dimensions{20, 20});
     std::cerr << "Renderer is created\n";
     auto screen = renderer(world, camera).get_frame_buffer();
     for (const auto& row : screen) {
         for (const auto& elem : row) {
-            if (elem.x() > 0) std::cout << "x";
-            else std::cout << ".";
+            if (elem.x() > 0) {
+                std::cout << "x";
+            } else {
+                std::cout << ".";
+            }
         }
         std::cout << "\n";
     }

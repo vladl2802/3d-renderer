@@ -64,8 +64,8 @@ bool Renderer::can_draw_object(const std::array<BoundingCheckResult, 6>& check_r
                        [](auto res) { return res == BoundingCheckResult::OnPositiveSide; });
 }
 
-Renderer::Renderer(size_t screen_height, size_t screen_width)
-    : screen_(screen_height, screen_width) {
+Renderer::Renderer(Dimensions dims)
+    : screen_(dims) {
 }
 
 const Screen& Renderer::operator()(const World& world, const Camera& camera) {

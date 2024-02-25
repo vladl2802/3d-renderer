@@ -33,8 +33,9 @@ public:
     using Vector3 = types::Vector3;
     template <int Rows, int Cols>
     using Matrix = types::Matrix<Rows, Cols>;
+    using Dimensions = Screen::Dimensions;
 
-    Renderer(size_t screen_height, size_t screen_width);
+    Renderer(Dimensions dims);
 
     const Screen& operator()(const World& world, const Camera& camera);
 

@@ -54,9 +54,10 @@ concept SameAsAny = (... || std::same_as<T, U>);
 template <typename F, typename... U>
 concept InvocableForAll =
     (... && (std::invocable<F, U> || std::invocable<F, U&> || std::invocable<F, const U&>));
-
+        
 class PrimitiveBase {
 public:
+    using CordType = types::CordType;
     // I want to rename this, but I can't understand how for now
     using GeomPoint = types::Point;
     template <int Rows, int Cols>
@@ -134,6 +135,10 @@ public:
     std::vector<GeomPoint> get_vertices() const;
 
 private:
+
+    static CordType edge_function(GeomPoint point, GeomPoint ver_1, GeomPoint ver_2);
+    
+
     RGBColor color_;
     std::array<GeomPoint, 3> vertices_;
 };
@@ -224,13 +229,6 @@ PrimitivesSet<Primitives...>::get_vertices() const {
 }
 
 }  // namespace primitive
-
-template <primitive::IsPrimitive T>
-struct Checker {};
-
-using PointKek = Checker<primitive::Point>;
-using SegmentKek = Checker<primitive::Segment>;
-using TriangleKek = Checker<primitive::Triangle>;
 
 using PrimitivesSet =
     primitive::PrimitivesSet<primitive::Point, primitive::Segment, primitive::Triangle>;
