@@ -4,11 +4,27 @@
 
 namespace renderer {
 
-Screen::Screen(size_t height, size_t width)
-    : height_(height),
-      width_(width),
-      depth_buffer_(height, std::vector<CordType>(width, - std::numeric_limits<CordType>::infinity())),
-      data_(height, std::vector<RGBColor>(width, {0, 0, 0})) {
+Screen::Screen(Dimensions dims)
+    : dims_(dims),
+      depth_buffer_(dims.height,
+                    std::vector<CordType>(dims.width, -std::numeric_limits<CordType>::infinity())),
+      data_(dims.height, std::vector<RGBColor>(dims.width, {0, 0, 0})) {
+}
+
+void Screen::put_pixel(PixelPosition pos, CordType inv_z, RGBColor color) {
+    assert(0 <= pos.x && pos.x < dims_.width);
+    assert(0 <= pos.y && pos.y < dims_.height);
+    if (inv_z < -1 || 1 < inv_z) {
+        return;
+    }
+    if (depth_buffer_[pos.y][pos.x] < inv_z) {  // 1 / depth_buffer > 1 / inv_z
+        depth_buffer_[pos.y][pos.x] = inv_z;
+        data_[pos.y][pos.x] = color;
+    }
+}
+
+const std::vector<std::vector<Screen::RGBColor>>& Screen::get_frame_buffer() const {
+    return data_;
 }
 
 }  // namespace renderer
