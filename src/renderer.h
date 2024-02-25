@@ -13,18 +13,19 @@
 namespace renderer {
 
 struct Camera {
+    using CordType = types::CordType;
     using Point = types::Point;
     template <int Rows, int Cols>
     using Matrix = types::Matrix<Rows, Cols>;
 
     Point position;
-    double left;
-    double right;
-    double bottom;
-    double top;
+    CordType left;
+    CordType right;
+    CordType bottom;
+    CordType top;
     Matrix<3, 3> orientation;
-    double near;
-    double far;
+    CordType near;
+    CordType far;
 };
 
 class Renderer {

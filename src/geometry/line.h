@@ -7,6 +7,7 @@ namespace renderer {
 
 class Line {
 public:
+    using CordType = types::CordType;
     using Point = types::Point;
     using Vector3 = types::Vector3;
     template <int Rows, int Cols>

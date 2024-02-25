@@ -2,7 +2,7 @@
 
 namespace renderer {
 
-Sphere::Sphere(Point position, double radius) : center_(position), radius_(radius) {
+Sphere::Sphere(Point position, CordType radius) : center_(position), radius_(radius) {
     assert(radius > 0);
 }
 
@@ -14,15 +14,15 @@ void Sphere::set_center(Point center) {
     center = center_;
 }
 
-double Sphere::get_radius() const {
+Sphere::CordType Sphere::get_radius() const {
     return radius_;
 }
 
-double renderer::Sphere::get_squared_radius() const {
+Sphere::CordType renderer::Sphere::get_squared_radius() const {
     return radius_ * radius_;
 }
 
-void renderer::Sphere::set_radius(double radius) {
+void renderer::Sphere::set_radius(CordType radius) {
     assert(radius > 0);
     radius_ = radius;
 }

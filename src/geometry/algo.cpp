@@ -8,6 +8,7 @@
 
 namespace renderer {
 
+using types::CordType;
 using types::Point;
 using types::Vector3;
 
@@ -34,9 +35,9 @@ Sphere renderer::algo::get_bounding_sphere(const std::vector<Point>& points) {
         auto diff2 = dir.squaredNorm();
         auto rad2 = res.get_squared_radius();
         if (diff2 <= rad2) {
-            double offset = std::sqrt(rad2 / diff2);
+            CordType offset = std::sqrt(rad2 / diff2);
             Point new_center = (res.get_center() * (1.0 + offset) + pt * (1.0 - offset)) / 2.0;
-            double new_radius = (dir.norm() + res.get_radius()) / 2.0;
+            CordType new_radius = (dir.norm() + res.get_radius()) / 2.0;
             res = Sphere(new_center, new_radius);
         }
     }

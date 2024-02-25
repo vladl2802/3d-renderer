@@ -6,6 +6,7 @@ namespace renderer {
 
 class Screen {
 public:
+    using CordType = types::CordType;
     using Point = types::Point;
     using RGBColor = types::RGBColor;
 
@@ -20,7 +21,7 @@ private:
 
     // Can be changed to dynarray
     // Maybe merge depth and color in one cell to avoid cache misses
-    std::vector<std::vector<double>> depth_buffer_;
+    std::vector<std::vector<CordType>> depth_buffer_;
     std::vector<std::vector<RGBColor>> data_;
 };
 

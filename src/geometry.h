@@ -14,12 +14,15 @@ namespace renderer {
 
 namespace types {
 
-using Vector3 = Eigen::Vector3d;
-// Probably need class for right vector triple
-using Point = Vector3;
-using Vector4 = Eigen::Vector4d;
+using CordType = double;
+
 template <int Rows, int Cols>
-using Matrix = Eigen::Matrix<double, Rows, Cols>;
+using Matrix = Eigen::Matrix<CordType, Rows, Cols>;
+
+using Vector3 = Matrix<3, 1>;
+using Point = Vector3;
+using Vector4 = Matrix<4, 1>;
+// Probably need class for right vector triple
 // Probably need Transform<CoordSystem, TransformType> to typify transformations between different
 // coordinate system (for e.x. in renderer between camera system and global system)
 using RGBColor = Point;  // Move this to appropriate place
