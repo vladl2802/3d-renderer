@@ -60,20 +60,20 @@ bool Renderer::can_skip_object(const std::array<BoundingCheckResult, 6>& check_r
 }
 
 bool Renderer::need_intersect_object(const std::array<BoundingCheckResult, 6>& check_results) {
-    return std::all_of(check_results.begin(), check_results.end(),
-                       [](auto res) { return res == BoundingCheckResult::OnPositiveSide; });
+    return std::any_of(check_results.begin(), check_results.end(),
+                       [](auto res) { return res == BoundingCheckResult::Intersects; });
 }
 
 Renderer::Renderer(size_t screen_height, size_t screen_width)
-    : screen_({.height = screen_height, .width = screen_width}) {
+    : dims_({.height = screen_height, .width = screen_width}) {
 }
 
-const Screen& Renderer::operator()(const World& world, const Camera& camera) {
+Screen Renderer::operator()(const World& world, const Camera& camera) {
     // Need to check camera direction matrix (that it contains normalized right vector triple)
 
     // I want to give rasterizer temporal (for it's lifetime) ownership over screen and get it back,
     // but I don't know to do it properly
-    auto rasterizer = Rasterizer(std::unique_ptr<Screen>(&screen_));
+    auto rasterizer = Rasterizer(dims_);
     Matrix<4, 4> transform_from_camera = get_from_camera_coords_matrix(camera);
     std::array<Plane, 6> frustum_bounding = get_view_frustum_bounding(camera);
     std::array<Plane, 6> transformed_frustum_bounding =
@@ -87,13 +87,13 @@ const Screen& Renderer::operator()(const World& world, const Camera& camera) {
             continue;
         }
         PrimitivesSet primitives = obj.get_primitives();
-        primitives.transform_inplace(transform_to_camera);
         if (need_intersect_object(check_results)) {
             primitives = primitives.intersect(transformed_frustum_bounding);
         }
+        primitives.transform_inplace(transform_to_camera);
         primitives.for_each([&rasterizer](auto prim) { rasterizer(prim); });
     }
-    return screen_;
+    return rasterizer.get_screen();
 }
 
 }  // namespace renderer

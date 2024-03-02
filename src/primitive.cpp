@@ -104,6 +104,7 @@ std::vector<Triangle> Triangle::intersect(const Plane& plane) const {
     }
     std::vector<GeomPoint> inside;
     inside.reserve(inside_count + 2);
+    inside.resize(inside_count);
     std::copy_if(vertices_.begin(), vertices_.end(), inside.begin(), check_is_inside);
     static constexpr std::array<std::pair<int, int>, 3> kEdges = {{{0, 1}, {0, 2}, {1, 2}}};
     for (const auto& [u, v] : kEdges) {
@@ -115,7 +116,7 @@ std::vector<Triangle> Triangle::intersect(const Plane& plane) const {
     std::vector<Triangle> result;
     result.reserve(inside_count);
     for (size_t i = 2; i < inside.size(); ++i) {
-        result.push_back(Triangle({inside[0], inside[1], inside[i]}));
+        result.push_back(Triangle({inside[i - 2], inside[i - 1], inside[i]}));
     }
     return result;
 }

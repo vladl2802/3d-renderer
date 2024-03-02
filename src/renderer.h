@@ -37,7 +37,7 @@ public:
 
     Renderer(size_t screen_height, size_t screen_width);
 
-    const Screen& operator()(const World& world, const Camera& camera);
+    Screen operator()(const World& world, const Camera& camera);
 
 private:
     static Matrix<4, 4> get_from_camera_coords_matrix(const Camera& camera);
@@ -51,7 +51,7 @@ private:
     static bool can_skip_object(const std::array<BoundingCheckResult, 6>& check_results);
     static bool need_intersect_object(const std::array<BoundingCheckResult, 6>& check_results);
 
-    Screen screen_;
+    Screen::Dimensions dims_;
 };
 
 }  // namespace renderer

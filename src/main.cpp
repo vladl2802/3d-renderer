@@ -15,7 +15,8 @@ int main() {
     std::vector<int> a;
     a.push_back(10);
 
-    auto t1 = Object::create_triangle({2, 5, 0}, {-3, 6, 1}, {3, 8, 2});
+    auto t1 = Object::create_triangle({2, 5, -3}, {-5, 3, 1}, {3, 4, 5});
+    // auto t1 = Object::create_triangle({2, })
     std::cerr << "Triangle is created\n";
     World world;
     world.push_object(t1);
@@ -29,7 +30,8 @@ int main() {
                                .orientation = orientation,
                                .near = 1,
                                .far = 11};
-    auto renderer = Renderer(20, 20);
+    auto renderer = Renderer(80, 180);
+    // auto renderer = Renderer(50, 50);
     std::cerr << "Renderer is created\n";
     auto screen = renderer(world, camera).get_frame_buffer();
     for (const auto& row : screen) {

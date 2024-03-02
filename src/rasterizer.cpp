@@ -40,7 +40,11 @@ Rasterizer::ProjectedVertexAtributes Rasterizer::ProjectedVertexAtributes::opera
     return *this;
 }
 
-Rasterizer::Rasterizer(std::unique_ptr<Screen> screen) : screen_(std::move(screen)) {
+Rasterizer::Rasterizer(Screen::Dimensions dims) : screen_(dims), dims_(dims) {
+}
+
+Screen Rasterizer::get_screen() const {
+    return screen_;
 }
 
 Rasterizer::ProjectedPoint Rasterizer::rescale_to_screen(ProjectedPoint point) const {
@@ -86,7 +90,8 @@ Rasterizer::ProjectedVertexAtributes Rasterizer::interpolate_over_triangle(
     std::array<CordType, 3> barycentric_coords, const VerticesAttributes<3>& attributes) {
     Rasterizer::ProjectedVertexAtributes result;
     for (size_t i = 0; i < 3; ++i) {
-        result += attributes[i] * barycentric_coords[i];
+        auto tmp = attributes[i] * barycentric_coords[i];
+        result += tmp;
     }
     return result;
 }

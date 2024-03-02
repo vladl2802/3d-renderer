@@ -19,10 +19,12 @@ public:
     using Point = types::Point;
     using RGBColor = types::RGBColor;
 
-    Rasterizer(std::unique_ptr<Screen> screen);
+    Rasterizer(Screen::Dimensions dims);
 
     template <primitive::IsPrimitive Primitive>
     void operator()(Primitive prim);
+
+    Screen get_screen() const;
 
 private:
     // not sure where to put this class
@@ -39,7 +41,7 @@ private:
         ProjectedVertexAtributes operator+=(const ProjectedVertexAtributes& other);
 
     private:
-        CordType inverted_z_;
+        CordType inverted_z_ = 0;
     };
 
     struct BoundingRectangle {
@@ -79,15 +81,14 @@ private:
         std::array<CordType, 3> barycentric_coords, const VerticesAttributes<3>& attributes);
 
     RGBColor color_ = RGBColor{100, 100, 100};  // This is temporal
-    std::unique_ptr<Screen> screen_;
+    Screen screen_;
     Screen::Dimensions dims_;
 };
 
 template <>
 inline void Rasterizer::operator()(primitive::Point prim) {
     auto [vert, attr] = split_and_rescale_vertices(prim.get_vertices());
-    screen_->put_pixel(to_pixel_position(rescale_to_screen(vert[0])), attr[0].get_inverted_z(),
-                       color_);
+    screen_.put_pixel(to_pixel_position(vert[0]), attr[0].get_inverted_z(), color_);
 }
 
 template <>
@@ -105,7 +106,7 @@ inline void Rasterizer::operator()(primitive::Segment prim) {
             const CordType dist = std::abs(vec.cross(tmp) / length);
             if (dist < BORDER) {
                 const auto attr = interpolate_over_line(tmp.norm() / length, attributes);
-                screen_->put_pixel({x_ind, y_ind}, attr.get_inverted_z(), color_);
+                screen_.put_pixel({x_ind, y_ind}, attr.get_inverted_z(), color_);
             }
         }
     }
@@ -123,7 +124,7 @@ inline void Rasterizer::operator()(primitive::Triangle prim) {
             std::array<CordType, 3> bar_coords = calc_barycentric_coords(points, area, pt);
             if (check_is_point_inside_triangle(bar_coords)) {
                 const auto attr = interpolate_over_triangle(std::move(bar_coords), attributes);
-                screen_->put_pixel({x_ind, y_ind}, attr.get_inverted_z(), color_);
+                screen_.put_pixel({x_ind, y_ind}, attr.get_inverted_z(), color_);
             }
         }
     }
