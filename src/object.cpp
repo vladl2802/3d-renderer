@@ -8,9 +8,9 @@ namespace renderer {
 
 using types::Point;
 
-Object Object::create_triangle(Point p1, Point p2, Point p3, RGBColor color) {
+Object Object::create_triangle(Point p1, Point p2, Point p3) {
     PrimitivesSet ps;
-    ps.push(primitive::Triangle({p1, p2, p3}, color));
+    ps.push(primitive::Triangle({p1, p2, p3}));
     return Object(Point(0, 0, 0), ps);
 }
 

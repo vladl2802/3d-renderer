@@ -1,12 +1,13 @@
 #include "plane.h"
 
-#include "Eigen/Dense"
 #include <cassert>
+
+#include "Eigen/Dense"
 
 namespace renderer {
 
-using types::Vector4;
 using types::Matrix;
+using types::Vector4;
 
 Plane::Plane(Vector3 normal, CordType d) : normal_(normal), d_(d) {
     assert(normal_.norm() > 0);

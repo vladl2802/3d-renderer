@@ -1,6 +1,6 @@
 #include <array>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 #include "geometry.h"
 #include "renderer.h"
@@ -11,10 +11,11 @@ using renderer::World;
 using renderer::types::Matrix;
 
 int main() {
+
     std::vector<int> a;
     a.push_back(10);
 
-    auto t1 = Object::create_triangle({2, 5, 0}, {-3, 6, 1}, {3, 8, 2}, {0.5, 0.5, 0.5});
+    auto t1 = Object::create_triangle({2, 5, 0}, {-3, 6, 1}, {3, 8, 2});
     std::cerr << "Triangle is created\n";
     World world;
     world.push_object(t1);
@@ -33,8 +34,11 @@ int main() {
     auto screen = renderer(world, camera).get_frame_buffer();
     for (const auto& row : screen) {
         for (const auto& elem : row) {
-            if (elem.x() > 0) std::cout << "x";
-            else std::cout << ".";
+            if (elem.x() > 0) {
+                std::cout << "x";
+            } else {
+                std::cout << ".";
+            }
         }
         std::cout << "\n";
     }

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "geometry.h"
-
 #include <cassert>
+
+#include "geometry.h"
 
 namespace renderer {
 
@@ -26,7 +26,9 @@ public:
     Screen(Dimensions dims);
 
     void put_pixel(PixelPosition pos, CordType inv_z, RGBColor color);
+
     const std::vector<std::vector<RGBColor>>& get_frame_buffer() const;
+    Dimensions get_dimensions() const;
 
 private:
     Dimensions dims_;

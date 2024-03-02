@@ -19,6 +19,7 @@ using CordType = double;
 template <int Rows, int Cols>
 using Matrix = Eigen::Matrix<CordType, Rows, Cols>;
 
+using Vector2 = Matrix<2, 1>;
 using Vector3 = Matrix<3, 1>;
 using Point = Vector3;
 using Vector4 = Matrix<4, 1>;

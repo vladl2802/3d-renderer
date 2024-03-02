@@ -5,9 +5,8 @@
 #include <numeric>
 #include <tuple>
 
-#include "eigen3/Eigen/Geometry"
+#include "Eigen/Geometry"
 #include "geometry/algo.h"
-#include "geometry/linear_interpolation.h"
 
 namespace renderer {
 
@@ -34,16 +33,11 @@ inline void perform_transform_inplace(std::array<Point, N>& vertices,
 
 namespace primitive {
 
-Point::Point(GeomPoint position, RGBColor color)
-    : color_(color), position_(position) {
+Point::Point(GeomPoint position) : position_(position) {
 }
 
 void Point::transform_inplace(const Matrix<4, 4>& operation) {
     homogeneous_transform_inplace(position_, operation);
-}
-
-void Point::rasterize(Screen& screen) const {
-    screen.put_pixel(position_, color_);
 }
 
 std::vector<Point> Point::intersect(const Plane& plane) const {
@@ -54,38 +48,15 @@ std::vector<Point> Point::intersect(const Plane& plane) const {
     }
 }
 
-std::vector<Point::GeomPoint> Point::get_vertices() const {
+std::array<Point::GeomPoint, Point::kVertexCount> Point::get_vertices() const {
     return {position_};
 }
 
-Segment::Segment(std::array<GeomPoint, 2> vertices, RGBColor color)
-    : color_(color), vertices_(vertices) {
+Segment::Segment(std::array<GeomPoint, kVertexCount> vertices) : vertices_(vertices) {
 }
 
 void Segment::transform_inplace(const Matrix<4, 4>& operation) {
     perform_transform_inplace<2>(vertices_, operation);
-}
-
-void Segment::rasterize(Screen& screen) const {
-    double dif_x = vertices_[0].x() - vertices_[1].x();
-    double dif_y = vertices_[0].y() - vertices_[1].y();
-    std::array<GeomPoint, 2> inv_vertices;  // x, y are the same, z is inverted
-    std::transform(vertices_.begin(), vertices_.end(), inv_vertices.begin(),
-                   [](const GeomPoint& point) {
-                       return GeomPoint{point.x(), point.y(), 1 / point.z()};
-                   });
-    Range<double> range;
-    if (std::abs(dif_x) > std::abs(dif_y)) {
-        range = Range(vertices_[0].x(), vertices_[1].x());
-    } else {
-        range = Range(vertices_[0].y(), vertices_[1].y());
-    }
-    LinearInterpolation li(range,
-                           std::make_tuple(std::make_pair(inv_vertices[0], inv_vertices[1])));
-    for (double pos = range.begin(); pos <= range.end(); ++pos) {
-        auto [point] = li.interpolate(pos);
-        screen.put_pixel(point, color_);
-    }
 }
 
 std::vector<Segment> Segment::intersect(const Plane& plane) const {
@@ -100,7 +71,6 @@ std::vector<Segment> Segment::intersect(const Plane& plane) const {
         return {*this};
     }
     Segment result = *this;
-    // This may be inconsistent so std::array<bool, 2> of check results may be preferable
     auto outside_point =
         std::find_if(result.vertices_.begin(), result.vertices_.end(), check_is_outside);
     assert(outside_point != vertices_.end());
@@ -108,57 +78,15 @@ std::vector<Segment> Segment::intersect(const Plane& plane) const {
     return {result};
 }
 
-std::vector<Segment::GeomPoint> Segment::get_vertices() const {
-    return std::vector<Segment::GeomPoint>(vertices_.begin(), vertices_.end());
+std::array<Segment::GeomPoint, Segment::kVertexCount> Segment::get_vertices() const {
+    return vertices_;
 }
 
-Triangle::Triangle(std::array<GeomPoint, 3> vertices, RGBColor color)
-    : color_(color), vertices_(vertices) {
+Triangle::Triangle(std::array<GeomPoint, kVertexCount> vertices) : vertices_(vertices) {
 }
 
 void Triangle::transform_inplace(const Matrix<4, 4>& operation) {
     return perform_transform_inplace<3>(vertices_, operation);
-}
-
-void Triangle::rasterize(Screen& screen) const {
-    std::array<GeomPoint, 3> inv_vertices;
-    std::transform(vertices_.begin(), vertices_.end(), inv_vertices.begin(),
-                   [](const GeomPoint& point) {
-                       return GeomPoint{point.x(), point.y(), 1 / point.z()};
-                   });
-    std::sort(inv_vertices.begin(), inv_vertices.end(),
-              [](const GeomPoint& lhs, const GeomPoint& rhs) { return lhs.y() < rhs.y(); });
-    LinearInterpolation long_li(Range(inv_vertices[0].y(), inv_vertices[2].y()),
-                                std::make_tuple(std::make_pair(inv_vertices[0], inv_vertices[2])));
-    Range ver_range(inv_vertices[0].y(), inv_vertices[1].y());
-    LinearInterpolation short_li(ver_range,
-                                 std::make_tuple(std::make_pair(inv_vertices[0], inv_vertices[1])));
-    for (double y_pos = ver_range.begin(); y_pos <= ver_range.end(); y_pos += 0.05) {
-        auto [point_long] = long_li.interpolate(y_pos);
-        auto [point_short] = short_li.interpolate(y_pos);
-        Range hor_range = Range(point_long.x(), point_short.x());
-        LinearInterpolation hor(hor_range,
-                                std::make_tuple(std::make_pair(point_long, point_short)));
-        for (double x_pos = hor_range.begin(); x_pos <= hor_range.end(); x_pos += 0.05) {
-            auto [point] = hor.interpolate(x_pos);
-            screen.put_pixel(point, color_);
-        }
-    }
-    // need deduplicate this, but I'm not sure how for now
-    ver_range = Range(inv_vertices[1].y(), inv_vertices[2].y());
-    short_li = LinearInterpolation(
-        ver_range, std::make_tuple(std::make_pair(inv_vertices[1], inv_vertices[2])));
-    for (double y_pos = ver_range.begin(); y_pos <= ver_range.end(); y_pos += 0.05) {
-        auto [point_long] = long_li.interpolate(y_pos);
-        auto [point_short] = short_li.interpolate(y_pos);
-        Range hor_range = Range(point_long.x(), point_short.x());
-        LinearInterpolation hor(hor_range,
-                                std::make_tuple(std::make_pair(point_long, point_short)));
-        for (double x_pos = hor_range.begin(); x_pos <= hor_range.end(); x_pos += 0.05) {
-            auto [point] = hor.interpolate(x_pos);
-            screen.put_pixel(point, color_);
-        }
-    }
 }
 
 std::vector<Triangle> Triangle::intersect(const Plane& plane) const {
@@ -176,7 +104,6 @@ std::vector<Triangle> Triangle::intersect(const Plane& plane) const {
     }
     std::vector<GeomPoint> inside;
     inside.reserve(inside_count + 2);
-    // This may be inconsistent
     std::copy_if(vertices_.begin(), vertices_.end(), inside.begin(), check_is_inside);
     static constexpr std::array<std::pair<int, int>, 3> kEdges = {{{0, 1}, {0, 2}, {1, 2}}};
     for (const auto& [u, v] : kEdges) {
@@ -188,13 +115,13 @@ std::vector<Triangle> Triangle::intersect(const Plane& plane) const {
     std::vector<Triangle> result;
     result.reserve(inside_count);
     for (size_t i = 2; i < inside.size(); ++i) {
-        result.push_back(Triangle({inside[0], inside[1], inside[i]}, color_));
+        result.push_back(Triangle({inside[0], inside[1], inside[i]}));
     }
     return result;
 }
 
-std::vector<Triangle::GeomPoint> Triangle::get_vertices() const {
-    return std::vector<Triangle::GeomPoint>(vertices_.begin(), vertices_.end());
+std::array<Triangle::GeomPoint, Triangle::kVertexCount> Triangle::get_vertices() const {
+    return vertices_;
 }
 
 }  // namespace primitive

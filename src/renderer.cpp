@@ -1,6 +1,9 @@
 #include "renderer.h"
 
+#include <memory>
+
 #include "Eigen/LU"
+#include "rasterizer.h"
 
 namespace renderer {
 
@@ -33,12 +36,9 @@ std::array<Plane, 6> Renderer::transform_bounding(const std::array<Plane, 6>& bo
 }
 
 Renderer::Matrix<4, 4> Renderer::get_perspective_projection_matrix(const Camera& camera) {
-    auto n = camera.near;
-    auto f = camera.far;
-    auto l = camera.left;
-    auto r = camera.right;
-    auto b = camera.bottom;
-    auto t = camera.top;
+    auto n = camera.near, f = camera.far;
+    auto l = camera.left, r = camera.right;
+    auto b = camera.bottom, t = camera.top;
     Matrix<4, 4> result{{2 * n / (r - l), 0, (r + l) / (r - l), 0},
                         {0, 2 * n / (t - b), (t + b) / (t - b), 0},
                         {0, 0, -(f + n) / (f - n), -2 * n * f / (f - n)},
@@ -59,17 +59,21 @@ bool Renderer::can_skip_object(const std::array<BoundingCheckResult, 6>& check_r
                        [](auto res) { return res == BoundingCheckResult::OnNegativeSide; });
 }
 
-bool Renderer::can_draw_object(const std::array<BoundingCheckResult, 6>& check_results) {
+bool Renderer::need_intersect_object(const std::array<BoundingCheckResult, 6>& check_results) {
     return std::all_of(check_results.begin(), check_results.end(),
                        [](auto res) { return res == BoundingCheckResult::OnPositiveSide; });
 }
 
 Renderer::Renderer(size_t screen_height, size_t screen_width)
-    : screen_(screen_height, screen_width) {
+    : screen_({.height = screen_height, .width = screen_width}) {
 }
 
 const Screen& Renderer::operator()(const World& world, const Camera& camera) {
     // Need to check camera direction matrix (that it contains normalized right vector triple)
+
+    // I want to give rasterizer temporal (for it's lifetime) ownership over screen and get it back,
+    // but I don't know to do it properly
+    auto rasterizer = Rasterizer(std::unique_ptr<Screen>(&screen_));
     Matrix<4, 4> transform_from_camera = get_from_camera_coords_matrix(camera);
     std::array<Plane, 6> frustum_bounding = get_view_frustum_bounding(camera);
     std::array<Plane, 6> transformed_frustum_bounding =
@@ -84,13 +88,10 @@ const Screen& Renderer::operator()(const World& world, const Camera& camera) {
         }
         PrimitivesSet primitives = obj.get_primitives();
         primitives.transform_inplace(transform_to_camera);
-        if (can_draw_object(check_results)) {
-            // If object is inside view frustum it can be fully drawn
-            primitives.rasterize(screen_);
-        } else {
-            // If object intersects view frustum it needs further checks on each its primitive
-            primitives.intersect_and_rasterize(frustum_bounding, screen_);
+        if (need_intersect_object(check_results)) {
+            primitives = primitives.intersect(transformed_frustum_bounding);
         }
+        primitives.for_each([&rasterizer](auto prim) { rasterizer(prim); });
     }
     return screen_;
 }

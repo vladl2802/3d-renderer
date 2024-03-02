@@ -49,7 +49,7 @@ private:
     static std::array<BoundingCheckResult, 6> check_bounding(const std::array<Plane, 6>& bounding,
                                                              const Object& object);
     static bool can_skip_object(const std::array<BoundingCheckResult, 6>& check_results);
-    static bool can_draw_object(const std::array<BoundingCheckResult, 6>& check_results);
+    static bool need_intersect_object(const std::array<BoundingCheckResult, 6>& check_results);
 
     Screen screen_;
 };

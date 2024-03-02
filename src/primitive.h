@@ -22,11 +22,10 @@ concept Transformable = requires(T prim, const types::Matrix<4, 4>& operation) {
     // { prim.transform(operation) } -> std::same_as<T>;
 };
 
-template <typename T>
-// Maybe replace here and later reference with pointer
-concept Rasterizable = requires(const T& prim, Screen& screen) {
-    { prim.rasterize(screen) } -> std::same_as<void>;
-};
+// template <typename T>
+// concept Rasterizable = requires(const T& prim, Screen& screen) {
+//     { prim.rasterize(screen) } -> std::same_as<void>;
+// };
 
 template <typename T>
 concept Intersectable = requires(const T& prim, const Plane& plane) {
@@ -41,10 +40,7 @@ concept Intersectable = requires(const T& prim, const Plane& plane) {
 // };
 
 template <typename T>
-concept IsPrimitive = std::copyable<T> && Transformable<T> && Intersectable<T> && Rasterizable<T> &&
-                      requires(T prim) {
-                          { prim.get_vertices() } -> std::same_as<std::vector<types::Point>>;
-                      };
+concept IsPrimitive = std::copyable<T> && Transformable<T> && Intersectable<T>;  // && Iterable<T>
 
 // Move it appropriate place
 template <typename T, typename... U>
@@ -52,8 +48,7 @@ concept SameAsAny = (... || std::same_as<T, U>);
 
 // Move it appropriate place
 template <typename F, typename... U>
-concept InvocableForAll =
-    (... && (std::invocable<F, U> || std::invocable<F, U&> || std::invocable<F, const U&>));
+concept InvocableForAll = (... && std::invocable<F, U>);
 
 class PrimitiveBase {
 public:
@@ -72,76 +67,77 @@ public:
     using Matrix = PrimitiveBase::Matrix<Rows, Cols>;
     using RGBColor = PrimitiveBase::RGBColor;
 
+    using BoundingBox = std::array<Plane, 6>;
+
     template <SameAsAny<Primitives...> T>
-    void push(const T& value);
+    void push(T value);
+    template <InvocableForAll<Primitives&...> F>
+    void for_each(F&& func);
+    template <InvocableForAll<const Primitives&...> F>
+    void for_each(F&& func) const;
 
     void transform_inplace(const Matrix<4, 4>& operation);
     PrimitivesSet transform(const Matrix<4, 4>& operation) const;
 
-    void rasterize(Screen& screen) const;
-    void intersect_and_rasterize(const std::array<Plane, 6>& bounding, Screen& screen) const;
+    // void intersect_inplace(const BoundingBox& bounding);
+    PrimitivesSet intersect(const BoundingBox& bounding) const;
 
-    // Change vector here to iterable proxy and maybe allocate all vertices in one container
+    // Change vector here to iterable
     std::vector<GeomPoint> get_vertices() const;
 
 private:
     // Need apply method that will call function on every std::vector contained in data_ to properly
     // use std::algorithms, but for now for_each method is enough
 
-    template <InvocableForAll<Primitives&...> F>
-    void for_each(F&& func);
-    template <InvocableForAll<const Primitives&...> F>
-    void for_each(F&& func) const;
-
     std::tuple<std::vector<Primitives>...> data_;
 };
 
 class Point : public PrimitiveBase {
 public:
-    Point(GeomPoint position, RGBColor color);
+    static constexpr size_t kVertexCount = 1;
+
+    Point(GeomPoint position);
 
     void transform_inplace(const Matrix<4, 4>& operation);
-    void rasterize(Screen& screen) const;
     std::vector<Point> intersect(const Plane& plane) const;
-    std::vector<GeomPoint> get_vertices() const;
+    std::array<GeomPoint, kVertexCount> get_vertices() const;
 
 private:
-    RGBColor color_;
     GeomPoint position_;
 };
 
 class Segment : public PrimitiveBase {
 public:
-    Segment(std::array<GeomPoint, 2> vertices, RGBColor color);
+    static constexpr size_t kVertexCount = 2;
+
+    Segment(std::array<GeomPoint, kVertexCount> vertices);
 
     void transform_inplace(const Matrix<4, 4>& operation);
-    void rasterize(Screen& screen) const;
     std::vector<Segment> intersect(const Plane& plane) const;
-    std::vector<GeomPoint> get_vertices() const;
+    std::array<GeomPoint, kVertexCount> get_vertices() const;
 
 private:
-    RGBColor color_;
-    std::array<GeomPoint, 2> vertices_;
+    std::array<GeomPoint, kVertexCount> vertices_;
 };
 
 class Triangle : public PrimitiveBase {
 public:
-    Triangle(std::array<GeomPoint, 3> vertices, RGBColor color);
+    static constexpr size_t kVertexCount = 3;
+
+    Triangle(std::array<GeomPoint, kVertexCount> vertices);
 
     void transform_inplace(const Matrix<4, 4>& operation);
-    void rasterize(Screen& screen) const;
     std::vector<Triangle> intersect(const Plane& plane) const;
-    std::vector<GeomPoint> get_vertices() const;
+    std::array<GeomPoint, kVertexCount> get_vertices() const;
 
 private:
-    RGBColor color_;
-    std::array<GeomPoint, 3> vertices_;
+    std::array<GeomPoint, kVertexCount> vertices_;
 };
 
 template <primitive::IsPrimitive... Primitives>
 template <SameAsAny<Primitives...> T>
-inline void PrimitivesSet<Primitives...>::push(const T& value) {
-    std::get<std::vector<T>>(data_).push_back(value);
+inline void PrimitivesSet<Primitives...>::push(T value) {
+    std::get<std::vector<T>>(data_).push_back(std::forward<T>(value));
 }
 
 template <primitive::IsPrimitive... Primitives>
@@ -186,30 +182,27 @@ inline PrimitivesSet<Primitives...> PrimitivesSet<Primitives...>::transform(
 }
 
 template <primitive::IsPrimitive... Primitives>
-inline void PrimitivesSet<Primitives...>::rasterize(Screen& screen) const {
-    for_each(
-        [&screen](const SameAsAny<Primitives...> auto& primitive) { primitive.rasterize(screen); });
-}
-
-template <primitive::IsPrimitive... Primitives>
-inline void PrimitivesSet<Primitives...>::intersect_and_rasterize(
-    const std::array<Plane, 6>& bounding, Screen& screen) const {
-    for_each([&bounding, &screen](const SameAsAny<Primitives...> auto& primitive) {
-        using CurrentPrimitiveType = std::decay_t<decltype(primitive)>;
-        // I really hate this implementation, will fix it later
-        std::vector<CurrentPrimitiveType> partition = {primitive};
+inline PrimitivesSet<Primitives...> PrimitivesSet<Primitives...>::intersect(
+    const BoundingBox& bounding) const {
+    PrimitivesSet<Primitives...> result;
+    for_each([&result, &bounding](const SameAsAny<Primitives...> auto& primitive) {
+        using PrimitiveType = std::decay_t<decltype(primitive)>;
+        // I really hate this implementation
+        std::vector<PrimitiveType> partition = {primitive};
         for (const auto& plane : bounding) {
-            std::vector<CurrentPrimitiveType> new_partition;
+            std::vector<PrimitiveType> new_partition;
             for (const auto& old : partition) {
                 auto temp = old.intersect(plane);
-                new_partition.insert(new_partition.end(), temp.begin(), temp.end());
+                new_partition.insert(new_partition.end(), std::make_move_iterator(temp.begin()),
+                                     std::make_move_iterator(temp.end()));
             }
-            partition = new_partition;
+            partition = std::move(new_partition);
         }
-        std::for_each(
-            partition.begin(), partition.end(),
-            [&screen](const SameAsAny<Primitives...> auto& prim) { prim.rasterize(screen); });
+        std::for_each(std::make_move_iterator(partition.begin()),
+                      std::make_move_iterator(partition.end()),
+                      [&result](PrimitiveType&& prim) { result.push(prim); });
     });
+    return result;
 }
 
 template <primitive::IsPrimitive... Primitives>
@@ -224,13 +217,6 @@ PrimitivesSet<Primitives...>::get_vertices() const {
 }
 
 }  // namespace primitive
-
-template <primitive::IsPrimitive T>
-struct Checker {};
-
-using PointKek = Checker<primitive::Point>;
-using SegmentKek = Checker<primitive::Segment>;
-using TriangleKek = Checker<primitive::Triangle>;
 
 using PrimitivesSet =
     primitive::PrimitivesSet<primitive::Point, primitive::Segment, primitive::Triangle>;

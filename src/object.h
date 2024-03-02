@@ -19,7 +19,7 @@ public:
     using Matrix = types::Matrix<Rows, Cols>;
     using RGBColor = types::RGBColor;
 
-    static Object create_triangle(Point p1, Point p2, Point p3, RGBColor color);
+    static Object create_triangle(Point p1, Point p2, Point p3);
 
     Object(Point position, const PrimitivesSet& primitives);
 
