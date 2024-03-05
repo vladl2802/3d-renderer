@@ -20,12 +20,13 @@ public:
     using RGBColor = types::RGBColor;
 
     static Object create_triangle(Point p1, Point p2, Point p3);
+    static Object create_segment(Point p1, Point p2);
 
     Object(Point position, const PrimitivesSet& primitives);
 
     std::vector<Point> get_vertices() const;
     BoundingCheckResult check_bounding(const Plane& plane) const;
-    const PrimitivesSet& get_primitives() const;
+    PrimitivesSet get_primitives() const;
 
 private:
     Point position_;

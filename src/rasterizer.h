@@ -94,14 +94,14 @@ inline void Rasterizer::operator()(primitive::Point prim) {
 template <>
 inline void Rasterizer::operator()(primitive::Segment prim) {
     // This is not efficient
-    static const CordType BORDER = std::sqrt(2);
+    static const CordType BORDER = std::sqrt(2) / 2;
     const auto [points, attributes] = split_and_rescale_vertices(prim.get_vertices());
     const auto bounding = get_bounding(points);
     const Vector2 vec = points[1] - points[0];
     const CordType length = vec.norm();
     for (IndexType x_ind = bounding.low.x; x_ind <= bounding.high.x; ++x_ind) {
         for (IndexType y_ind = bounding.low.y; y_ind <= bounding.high.y; ++y_ind) {
-            const ProjectedPoint pt((2 * x_ind + 1) / dims_.height, (2 * y_ind + 1) / dims_.width);
+            const ProjectedPoint pt(x_ind + 0.5, y_ind + 0.5);
             const Vector2 tmp = pt - points[0];
             const CordType dist = std::abs(vec.cross(tmp) / length);
             if (dist < BORDER) {

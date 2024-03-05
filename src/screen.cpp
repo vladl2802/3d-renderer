@@ -14,6 +14,7 @@ Screen::Screen(Dimensions dims)
 void Screen::put_pixel(PixelPosition pos, CordType inv_z, RGBColor color) {
     assert(pos.x < dims_.width);
     assert(pos.y < dims_.height);
+    pos.y = dims_.height - 1 - pos.y;
     if (inv_z < -1 || 1 < inv_z) {
         return;
     }

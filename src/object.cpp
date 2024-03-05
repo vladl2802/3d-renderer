@@ -14,6 +14,12 @@ Object Object::create_triangle(Point p1, Point p2, Point p3) {
     return Object(Point(0, 0, 0), ps);
 }
 
+Object Object::create_segment(Point p1, Point p2) {
+    PrimitivesSet ps;
+    ps.push(primitive::Segment({p1, p2}));
+    return Object(Point(0, 0, 0), ps);
+}
+
 Object::Object(Point position, const PrimitivesSet& primitives)
     : position_(position),
       primitives_(primitives),
@@ -21,19 +27,23 @@ Object::Object(Point position, const PrimitivesSet& primitives)
 }
 
 std::vector<Point> Object::get_vertices() const {
-    return primitives_.get_vertices();
+    auto result = primitives_.get_vertices();
+    std::for_each(result.begin(), result.end(), [this](Point& point) { point += this->position_; });
+    return result;
 }
 
 BoundingCheckResult Object::check_bounding(const Plane& plane) const {
-    auto dist = plane.get_signed_distance(bounding_.get_center());
+    auto dist = plane.get_signed_distance(bounding_.get_center() + position_);
     if (std::abs(dist) < bounding_.get_radius()) {
         return BoundingCheckResult::Intersects;
     }
     return dist < 0 ? BoundingCheckResult::OnNegativeSide : BoundingCheckResult::OnPositiveSide;
 }
 
-const PrimitivesSet& Object::get_primitives() const {
-    return primitives_;
+PrimitivesSet Object::get_primitives() const {
+    Matrix<4, 4> offset = Matrix<4, 4>::Identity();
+    offset.block<3, 1>(0, 3) = position_;
+    return primitives_.transform(offset);
 }
 
 }  // namespace renderer

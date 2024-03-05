@@ -15,8 +15,8 @@ int main() {
     std::vector<int> a;
     a.push_back(10);
 
-    auto t1 = Object::create_triangle({2, 5, -3}, {-5, 3, 1}, {3, 4, 5});
-    // auto t1 = Object::create_triangle({2, })
+    // auto t1 = Object::create_triangle({2, 5, -3}, {-5, 3, 1}, {3, 4, 3});
+    auto t1 = Object::create_segment({2, 5, -3}, {-5, 3, 1});
     std::cerr << "Triangle is created\n";
     World world;
     world.push_object(t1);
